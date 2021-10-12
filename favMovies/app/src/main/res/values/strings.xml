@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">favMovies</string>
+    <string name="titulo">Título</string>
+    <string name="tituloHint">Título de la película</string>
+    <string name="argumento">Argumento</string>
+    <string name="argumentoHint">Sinapsis de la pelicula</string>
+    <string name="categoria">Categoria</string>
+    <string name="duracion">Duración</string>
+    <string name="msg_guardando">Guardando la pelicula</string>
+    <string name="msg_crea_categoria">Creando nueva categoria</string>
+    <string name="msg_modif_categoria">Modificando la categoria</string>
+    <string name="msg_accion_cancelada">Accion cancelada</string>
+    <string name="msg_accion_ok">Accion aceptada</string>
+    <string name="creacion">Creación de la nueva categoria</string>
+    <string name="nombre_categoria">Nombre de la categoria</string>
+    <string name="descripcion_categoria">Descripción Categoria</string>
+    <string name="button_cancel"> CANCEL</string>
+    <string name="button_ok">OK</string>
+    <string name="titulopeli">Tenet</string>
+    <string name="fechaestreno">26/08/2020</string>
+</resources>
