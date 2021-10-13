@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="es.uniovi.eii.sdm">
 
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,6 +12,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FavMovies">
+        <activity
+            android:name=".ShowMovie"
+            android:label="@string/title_activity_show_movie"
+            android:theme="@style/Theme.FavMovies.NoActionBar"></activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".CategoriaActivity" />
         <activity android:name=".MainRecycler">
