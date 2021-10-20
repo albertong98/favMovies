@@ -117,4 +117,13 @@
     <string name="desc_caratula">descripcion caratula</string>
     <string name="contenido">Resumen</string>
     <string name="estreno">Estreno</string>
+    <string name="title_info">INFORMACIÓN</string>
+    <string name="title_actores">ACTORES</string>
+    <string name="title_argumento">ARGUMENTO</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="fechaEstreno">Fecha de estreno</string>
+    <string name="compartir">Compartir</string>
+    <string name="error_conexion">No se puede conectar</string>
+    <string name="subject_compartir">Te comparto la siguiente peli</string>
 </resources>

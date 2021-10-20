@@ -6,19 +6,27 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.squareup.picasso.Picasso;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import es.uniovi.eii.sdm.databinding.ActivityShowMovieBinding;
 import es.uniovi.eii.sdm.modelo.Pelicula;
+import es.uniovi.eii.sdm.ui.ArgumentoFragment;
+import es.uniovi.eii.sdm.ui.InfoFragment;
+import es.uniovi.eii.sdm.util.Conexion;
 
 public class ShowMovie extends AppCompatActivity {
 
@@ -30,12 +38,14 @@ public class ShowMovie extends AppCompatActivity {
     private ImageView fondo;
     private ImageView caratula;
 
+    private Pelicula pelicula;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-        Pelicula pelicula = intent.getParcelableExtra(MainRecycler.PELICULA_SELECCIONADA);
+        pelicula = intent.getParcelableExtra(MainRecycler.PELICULA_SELECCIONADA);
 
         binding = ActivityShowMovieBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -52,6 +62,9 @@ public class ShowMovie extends AppCompatActivity {
 
         fondo = (ImageView)findViewById(R.id.imagenFondo);
         caratula = (ImageView)findViewById(R.id.caratula);
+
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         if(pelicula!=null) mostrarDatos(pelicula,toolBarLayout);
 
@@ -71,14 +84,61 @@ public class ShowMovie extends AppCompatActivity {
     public void mostrarDatos(Pelicula pelicula,CollapsingToolbarLayout toolBarLayout){
         if(!pelicula.getTitulo().isEmpty()) {
             toolBarLayout.setTitle(pelicula.getTitulo());
-
-            categoria.setText(pelicula.getCategoria().getNombre());
-            estreno.setText(pelicula.getFecha());
-            duracion.setText(pelicula.getDuracion());
-            contenido.setText(pelicula.getArgumento());
-
             Picasso.get().load(pelicula.getUrlFondo()).into(fondo);
-            Picasso.get().load(pelicula.getUrlCaratula()).into(caratula);
+            InfoFragment infoFragment = new InfoFragment().newInstance(pelicula.getFecha(), pelicula.getUrlCaratula(), pelicula.getDuracion());
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,infoFragment).commit();
         }
+    }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            if(pelicula != null){
+                switch (item.getItemId()){
+                    case R.id.navigation_info:
+                        InfoFragment infoFragment = new InfoFragment().newInstance(pelicula.getFecha(), pelicula.getUrlCaratula(), pelicula.getDuracion());
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,infoFragment).commit();
+                        return true;
+                    case R.id.navigation_argumento:
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragment_container,new ArgumentoFragment().newInstance(pelicula.getArgumento())).commit();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return false;
+        }
+    };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.menu_show_movie,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item){
+        int id =item.getItemId();
+        if(id == R.id.compartir)
+            if(new Conexion(getApplicationContext()).CompruebaConexion())
+                compartirPeli();
+            else
+                Toast.makeText(getApplicationContext(),R.string.error_conexion,Toast.LENGTH_LONG).show();
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void compartirPeli(){
+        Intent itSend = new Intent(Intent.ACTION_SEND);
+
+        itSend.setType("text/plain");
+
+        itSend.putExtra(Intent.EXTRA_SUBJECT,getString(R.string.subject_compartir)+": "+pelicula.getTitulo());
+        itSend.putExtra(Intent.EXTRA_TEXT,getString(R.string.titulo)+": "
+                        +pelicula.getTitulo()+"\n"+getString(R.string.contenido)
+                        +": "+pelicula.getArgumento());
+        Intent shareIntent=Intent.createChooser(itSend, null);
+        startActivity(shareIntent);
     }
 }
