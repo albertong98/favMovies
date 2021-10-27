@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void addPelicula(){
         Categoria cat = listaCategorias.get(spinner.getSelectedItemPosition()-1);
-        Pelicula pelicula = new Pelicula(titulo.getText().toString(),argumento.getText().toString(),cat,duracion.getText().toString(),"",
+        Pelicula pelicula = new Pelicula(0,titulo.getText().toString(),argumento.getText().toString(),cat,duracion.getText().toString(),"",
                                             MainRecycler.caratula_por_defecto,MainRecycler.fondo_por_defecto,MainRecycler.trailer_por_defecto);
         Intent intentResult = new Intent();
         intentResult.putExtra(MainRecycler.PELICULA_ADD,pelicula);

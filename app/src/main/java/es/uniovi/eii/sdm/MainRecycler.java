@@ -1,16 +1,21 @@
 package es.uniovi.eii.sdm;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -25,6 +30,8 @@ import es.uniovi.eii.sdm.modelo.Categoria;
 import es.uniovi.eii.sdm.modelo.Pelicula;
 
 public class MainRecycler extends AppCompatActivity {
+    public static String filtroCategoria = null;
+
     public static final String PELICULA_SELECCIONADA="pelicula_seleccionada";
     public static final String PELICULA_ADD="pelicula_add";
     private static final int GESTION_PELICULA = 1;
@@ -35,12 +42,26 @@ public class MainRecycler extends AppCompatActivity {
     List<Pelicula> listaPeli;
     RecyclerView listaPeliView;
 
+    SharedPreferences sharedPreferencesMainRecycler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_recycler);
 
-        cargarPeliculas();
+        FloatingActionButton faButton = findViewById(R.id.floatingActionButton);
+        faButton.setOnClickListener(view -> {
+            crearPelicula();
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sharedPreferencesMainRecycler = PreferenceManager.getDefaultSharedPreferences(this);
+        filtroCategoria  = sharedPreferencesMainRecycler.getString("keyCategoria","");
+
+        if(filtroCategoria != null && !filtroCategoria.isEmpty()) cargarPeliculas(filtroCategoria);
+        else cargarPeliculas();
 
         listaPeliView = (RecyclerView)findViewById(R.id.recyclerView);
         listaPeliView.setHasFixedSize(true);
@@ -49,11 +70,6 @@ public class MainRecycler extends AppCompatActivity {
         listaPeliView.setLayoutManager(layoutManager);
 
         introListaPeliculas();
-
-        FloatingActionButton faButton = findViewById(R.id.floatingActionButton);
-        faButton.setOnClickListener(view -> {
-            crearPelicula();
-        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -69,19 +85,51 @@ public class MainRecycler extends AppCompatActivity {
         InputStream file = null;
         InputStreamReader reader = null;
         BufferedReader bufferedReader = null;
-
         try{
-            file = getAssets().open("lista_peliculas_url_utf8.csv");
+            file = getAssets().open("peliculas.csv");
             reader = new InputStreamReader(file);
             bufferedReader = new BufferedReader(reader);
+            bufferedReader.readLine();
             String line = null;
             while((line = bufferedReader.readLine()) != null){
                 String[] data = line.split(";");
                 //Pendiente de arreglar
                 if(data != null && data.length>=5){
-                    pelicula = data.length == 8 ? new Pelicula(data[0],data[1],new Categoria(data[2],""),data[3],data[4],data[5],data[6],data[7]) :
-                                                  new Pelicula(data[0],data[1],new Categoria(data[2],""),data[3],data[4],caratula_por_defecto,fondo_por_defecto,trailer_por_defecto);
+                    pelicula = data.length == 8 ? new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],data[6],data[7],data[8]) :
+                                                  new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],caratula_por_defecto,fondo_por_defecto,trailer_por_defecto);
                     listaPeli.add(pelicula);
+                }
+            }
+        } catch (IOException e) {
+            Log.e("Error lectura","error al leer fichero peliculas");
+            e.printStackTrace();
+        }finally {
+            try{ bufferedReader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ reader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ file.close(); }catch (IOException e){e.printStackTrace();}
+        }
+    }
+
+    private void cargarPeliculas(String filtro){
+        Pelicula pelicula;
+        listaPeli = new ArrayList<Pelicula>();
+        InputStream file = null;
+        InputStreamReader reader = null;
+        BufferedReader bufferedReader = null;
+        try{
+            file = getAssets().open("peliculas.csv");
+            reader = new InputStreamReader(file);
+            bufferedReader = new BufferedReader(reader);
+            bufferedReader.readLine();
+            String line = null;
+            while((line = bufferedReader.readLine()) != null){
+                String[] data = line.split(";");
+                if(data != null && data.length>=5){
+                    if(data[3].equals(filtro)) {
+                        pelicula = data.length == 8 ? new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],data[6],data[7],data[8]) :
+                                new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],caratula_por_defecto,fondo_por_defecto,trailer_por_defecto);
+                        listaPeli.add(pelicula);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -108,6 +156,23 @@ public class MainRecycler extends AppCompatActivity {
             }
         });
         listaPeliView.setAdapter(lpAdapter);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.main_recycler_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item){
+        int id = item.getItemId();
+        if(id == R.id.busquedaRecycler){
+            Intent intentSettings = new Intent(MainRecycler.this,SettingsActivity.class);
+            startActivity(intentSettings);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
