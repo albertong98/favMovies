@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import es.uniovi.eii.sdm.databinding.ActivityShowMovieBinding;
 import es.uniovi.eii.sdm.modelo.Pelicula;
+import es.uniovi.eii.sdm.ui.ActoresFragment;
 import es.uniovi.eii.sdm.ui.ArgumentoFragment;
 import es.uniovi.eii.sdm.ui.InfoFragment;
 import es.uniovi.eii.sdm.util.Conexion;
@@ -98,6 +99,10 @@ public class ShowMovie extends AppCompatActivity {
                     case R.id.navigation_info:
                         InfoFragment infoFragment = new InfoFragment().newInstance(pelicula.getFecha(), pelicula.getUrlCaratula(), pelicula.getDuracion());
                         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,infoFragment).commit();
+                        return true;
+                    case R.id.navigation_actores:
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragment_container,new ActoresFragment().newInstance(pelicula.getId())).commit();
                         return true;
                     case R.id.navigation_argumento:
                         getSupportFragmentManager().beginTransaction()

@@ -107,8 +107,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         //invocamos execSQL pq no devuelve ningún tipo de dataset
         db.execSQL(CREATE_TABLA_PELICULAS);
-        db.execSQL(CREATE_TABLA_PELICULAS_REPARTO);
         db.execSQL(CREATE_TABLA_REPARTO);
+        db.execSQL(CREATE_TABLA_PELICULAS_REPARTO);
 
         Log.i("ONCREATE", "EJECUTO CREACION");
     }

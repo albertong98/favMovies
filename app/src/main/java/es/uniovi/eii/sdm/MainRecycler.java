@@ -26,8 +26,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.uniovi.eii.sdm.datos.ActoresDataSource;
+import es.uniovi.eii.sdm.datos.PeliculaRepartoDataSource;
+import es.uniovi.eii.sdm.datos.PeliculasDataSource;
+import es.uniovi.eii.sdm.modelo.Actor;
 import es.uniovi.eii.sdm.modelo.Categoria;
 import es.uniovi.eii.sdm.modelo.Pelicula;
+import es.uniovi.eii.sdm.modelo.PeliculaReparto;
 
 public class MainRecycler extends AppCompatActivity {
     public static String filtroCategoria = null;
@@ -40,6 +45,8 @@ public class MainRecycler extends AppCompatActivity {
     public static final String trailer_por_defecto = "https://www.youtube.com/watch?v=9UfIRXjoO3I";
 
     List<Pelicula> listaPeli;
+    List<Actor> listaActor;
+    List<PeliculaReparto> listaPeliActor;
     RecyclerView listaPeliView;
 
     SharedPreferences sharedPreferencesMainRecycler;
@@ -62,6 +69,8 @@ public class MainRecycler extends AppCompatActivity {
 
         if(filtroCategoria != null && !filtroCategoria.isEmpty()) cargarPeliculas(filtroCategoria);
         else cargarPeliculas();
+        cargarReparto();
+        cargarPeliculaReparto();
 
         listaPeliView = (RecyclerView)findViewById(R.id.recyclerView);
         listaPeliView.setHasFixedSize(true);
@@ -84,26 +93,30 @@ public class MainRecycler extends AppCompatActivity {
         listaPeli = new ArrayList<Pelicula>();
         InputStream file = null;
         InputStreamReader reader = null;
+        PeliculasDataSource peliculasDataSource = null;
         BufferedReader bufferedReader = null;
         try{
             file = getAssets().open("peliculas.csv");
             reader = new InputStreamReader(file);
             bufferedReader = new BufferedReader(reader);
             bufferedReader.readLine();
+            peliculasDataSource = new PeliculasDataSource(getApplicationContext());
+            peliculasDataSource.open();
             String line = null;
             while((line = bufferedReader.readLine()) != null){
                 String[] data = line.split(";");
-                //Pendiente de arreglar
                 if(data != null && data.length>=5){
-                    pelicula = data.length == 8 ? new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],data[6],data[7],data[8]) :
+                    pelicula = data.length > 6 ? new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],data[6],data[7],data[8]) :
                                                   new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],caratula_por_defecto,fondo_por_defecto,trailer_por_defecto);
-                    listaPeli.add(pelicula);
+                    //listaPeli.add(pelicula);
+                    peliculasDataSource.createpelicula(pelicula);
                 }
             }
         } catch (IOException e) {
             Log.e("Error lectura","error al leer fichero peliculas");
             e.printStackTrace();
         }finally {
+            peliculasDataSource.close();
             try{ bufferedReader.close(); }catch (IOException e){e.printStackTrace();}
             try{ reader.close(); }catch (IOException e){e.printStackTrace();}
             try{ file.close(); }catch (IOException e){e.printStackTrace();}
@@ -116,10 +129,13 @@ public class MainRecycler extends AppCompatActivity {
         InputStream file = null;
         InputStreamReader reader = null;
         BufferedReader bufferedReader = null;
+        PeliculasDataSource peliculasDataSource = null;
         try{
             file = getAssets().open("peliculas.csv");
             reader = new InputStreamReader(file);
             bufferedReader = new BufferedReader(reader);
+            peliculasDataSource = new PeliculasDataSource(getApplicationContext());
+            peliculasDataSource.open();
             bufferedReader.readLine();
             String line = null;
             while((line = bufferedReader.readLine()) != null){
@@ -128,7 +144,8 @@ public class MainRecycler extends AppCompatActivity {
                     if(data[3].equals(filtro)) {
                         pelicula = data.length == 8 ? new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],data[6],data[7],data[8]) :
                                 new Pelicula(Integer.parseInt(data[0]),data[1],data[2],new Categoria(data[3],""),data[4],data[5],caratula_por_defecto,fondo_por_defecto,trailer_por_defecto);
-                        listaPeli.add(pelicula);
+                        //listaPeli.add(pelicula);
+                        peliculasDataSource.createpelicula(pelicula);
                     }
                 }
             }
@@ -136,25 +153,94 @@ public class MainRecycler extends AppCompatActivity {
             Log.e("Error lectura","error al leer fichero peliculas");
             e.printStackTrace();
         }finally {
+            peliculasDataSource.close();
             try{ bufferedReader.close(); }catch (IOException e){e.printStackTrace();}
             try{ reader.close(); }catch (IOException e){e.printStackTrace();}
             try{ file.close(); }catch (IOException e){e.printStackTrace();}
         }
     }
-
+    private void cargarReparto(){
+        Actor actor;
+        listaActor = new ArrayList<Actor>();
+        InputStream file = null;
+        InputStreamReader reader = null;
+        ActoresDataSource actoresDataSource = null;
+        BufferedReader bufferedReader = null;
+        try{
+            file = getAssets().open("reparto.csv");
+            reader = new InputStreamReader(file);
+            bufferedReader = new BufferedReader(reader);
+            actoresDataSource = new ActoresDataSource(getApplicationContext());
+            actoresDataSource.open();
+            bufferedReader.readLine();
+            String line = null;
+            while((line = bufferedReader.readLine()) != null){
+                String[] data = line.split(";");
+                if(data != null && data.length==4){
+                    actor = new Actor(Integer.parseInt(data[0]),data[1],data[2],data[3]);
+                    //listaActor.add(actor);
+                    actoresDataSource.createactor(actor);
+                }
+            }
+        } catch (IOException e) {
+            Log.e("Error lectura","error al leer fichero peliculas");
+            e.printStackTrace();
+        }finally {
+            actoresDataSource.close();
+            try{ bufferedReader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ reader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ file.close(); }catch (IOException e){e.printStackTrace();}
+        }
+    }
+    private void cargarPeliculaReparto(){
+        PeliculaReparto pR;
+        listaPeliActor = new ArrayList<PeliculaReparto>();
+        InputStream file = null;
+        InputStreamReader reader = null;
+        BufferedReader bufferedReader = null;
+        PeliculaRepartoDataSource peliculaRepartoDataSource = null;
+        try{
+            file = getAssets().open("peliculas-reparto.csv");
+            reader = new InputStreamReader(file);
+            bufferedReader = new BufferedReader(reader);
+            peliculaRepartoDataSource = new PeliculaRepartoDataSource(getApplicationContext());
+            peliculaRepartoDataSource.open();
+            bufferedReader.readLine();
+            String line = null;
+            while((line = bufferedReader.readLine()) != null){
+                String[] data = line.split(";");
+                if(data != null && data.length==3){
+                    pR = new PeliculaReparto(Integer.parseInt(data[0]),Integer.parseInt(data[1]),data[2]);
+                    //listaPeliActor.add(pR);
+                    peliculaRepartoDataSource.createpeliculareparto(pR);
+                }
+            }
+        } catch (IOException e) {
+            Log.e("Error lectura","error al leer fichero peliculas");
+            e.printStackTrace();
+        }finally {
+            peliculaRepartoDataSource.close();
+            try{ bufferedReader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ reader.close(); }catch (IOException e){e.printStackTrace();}
+            try{ file.close(); }catch (IOException e){e.printStackTrace();}
+        }
+    }
     private void crearPelicula(){
         Intent peliculaIntent = new Intent(MainRecycler.this,MainActivity.class);
         startActivityForResult(peliculaIntent,GESTION_PELICULA);
     }
 
     private void introListaPeliculas(){
-        ListaPeliculasAdapter lpAdapter = new ListaPeliculasAdapter(listaPeli, new ListaPeliculasAdapter.OnItemClickListener() {
+        PeliculasDataSource peliculasDataSource = new PeliculasDataSource(getApplicationContext());
+        peliculasDataSource.open();
+        ListaPeliculasAdapter lpAdapter = new ListaPeliculasAdapter(peliculasDataSource.getAllValorations(), new ListaPeliculasAdapter.OnItemClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onItemClick(Pelicula item) {
                 clickOnItem(item);
             }
         });
+        peliculasDataSource.close();
         listaPeliView.setAdapter(lpAdapter);
     }
 

@@ -8,12 +8,20 @@ public class Actor implements Parcelable {
     String nombre;
     String imagen;
     String URL_imdb;
+    String nombre_personaje;
 
     public Actor(){}
 
     public Actor(int id, String nombre, String imagen, String URL_imdb) {
         this.id = id;
         this.nombre = nombre;
+        this.imagen = imagen;
+        this.URL_imdb = URL_imdb;
+    }
+
+    public Actor(String nombre,String nombre_personaje, String imagen, String URL_imdb){
+        this.nombre = nombre;
+        this.nombre_personaje = nombre_personaje;
         this.imagen = imagen;
         this.URL_imdb = URL_imdb;
     }
@@ -56,6 +64,14 @@ public class Actor implements Parcelable {
     public String getURL_imdb() { return URL_imdb; }
 
     public void setURL_imdb(String URL_imdb) { this.URL_imdb = URL_imdb; }
+
+    public String getNombre_personaje() {
+        return nombre_personaje;
+    }
+
+    public void setNombre_personaje(String nombre_personaje) {
+        this.nombre_personaje = nombre_personaje;
+    }
 
     @Override
     public String toString() {

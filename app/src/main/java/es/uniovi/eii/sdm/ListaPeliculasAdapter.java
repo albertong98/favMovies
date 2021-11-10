@@ -56,9 +56,9 @@ public class ListaPeliculasAdapter extends RecyclerView.Adapter<ListaPeliculasAd
         public PeliculaViewHolder(View itemView){
             super(itemView);
 
-            titulo = (TextView)itemView.findViewById(R.id.titulopeli);
-            fecha = (TextView)itemView.findViewById(R.id.fechaestreno);
-            imagen = (ImageView)itemView.findViewById(R.id.imagen);
+            titulo = (TextView)itemView.findViewById(R.id.nombreactor);
+            fecha = (TextView)itemView.findViewById(R.id.personajepelicula);
+            imagen = (ImageView)itemView.findViewById(R.id.imagenactor);
         }
 
         public void bindUser(final Pelicula pelicula,final OnItemClickListener listener){
