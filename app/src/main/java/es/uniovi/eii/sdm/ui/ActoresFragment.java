@@ -17,7 +17,7 @@ import java.util.List;
 
 import es.uniovi.eii.sdm.ListaActoresAdapter;
 import es.uniovi.eii.sdm.R;
-import es.uniovi.eii.sdm.datos.ActoresDataSource;
+import es.uniovi.eii.sdm.datos.db.ActoresDataSource;
 import es.uniovi.eii.sdm.modelo.Actor;
 
 /**

@@ -26,24 +26,33 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import es.uniovi.eii.sdm.datos.ActoresDataSource;
-import es.uniovi.eii.sdm.datos.PeliculaRepartoDataSource;
-import es.uniovi.eii.sdm.datos.PeliculasDataSource;
+import es.uniovi.eii.sdm.datos.db.ActoresDataSource;
+import es.uniovi.eii.sdm.datos.db.PeliculaRepartoDataSource;
+import es.uniovi.eii.sdm.datos.db.PeliculasDataSource;
+import es.uniovi.eii.sdm.datos.server.movielist.MovieData;
+import es.uniovi.eii.sdm.datos.server.movielist.MovieListResult;
 import es.uniovi.eii.sdm.modelo.Actor;
 import es.uniovi.eii.sdm.modelo.Categoria;
 import es.uniovi.eii.sdm.modelo.Pelicula;
 import es.uniovi.eii.sdm.modelo.PeliculaReparto;
+import es.uniovi.eii.sdm.remote.ApiUtils;
+import es.uniovi.eii.sdm.remote.ThemoviedbApi;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static es.uniovi.eii.sdm.datos.server.ServerDataMapper.convertMovieListToDomain;
+import static es.uniovi.eii.sdm.remote.ApiUtils.API_KEY;
+import static es.uniovi.eii.sdm.remote.ApiUtils.LANGUAGE;
+import static es.uniovi.eii.sdm.remote.ApiUtils.createThemoviedbApi;
 
 public class MainRecycler extends AppCompatActivity {
     public static String filtroCategoria = null;
@@ -63,20 +72,24 @@ public class MainRecycler extends AppCompatActivity {
     SharedPreferences sharedPreferencesMainRecycler;
     NotificationManager nNotificationManager;
     NotificationCompat.Builder nBuilder;
-    float lineasALeer;
+    ThemoviedbApi clienteThemoviedbApi;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_recycler);
         progressBar = findViewById(R.id.progressBar);
 
-        ConstruirNotificacion("favMovies","Acceso a la BD de peliculas");
-        DownLoadFilesTask task = new DownLoadFilesTask();
-        task.execute();
+        //ConstruirNotificacion("favMovies","Acceso a la BD de peliculas");
+        //DownLoadFilesTask task = new DownLoadFilesTask();
+       // task.execute();
       //  FloatingActionButton faButton = findViewById(R.id.floatingActionButton);
        // faButton.setOnClickListener(view -> {
          //   crearPelicula();
         //});
+        listaPeliView = (RecyclerView) findViewById(R.id.recyclerView);
+        clienteThemoviedbApi = createThemoviedbApi();
+        realizarPeticionPeliculasPopulares(clienteThemoviedbApi);
     }
 
     @Override
@@ -209,6 +222,53 @@ public class MainRecycler extends AppCompatActivity {
         }
         return lineas;
     }
+
+    private void realizarPeticionPeliculasPopulares(ThemoviedbApi clienteThemoviedbApi) {
+        Call<MovieListResult> call=
+                clienteThemoviedbApi.getListMovies("popular",API_KEY,LANGUAGE,1);
+
+        // Petición asíncrona a la API
+        call.enqueue(new Callback<MovieListResult>() {
+            @Override
+            public void onResponse(Call<MovieListResult> call, Response<MovieListResult> response) {
+                switch (response.code()) {
+                    case 200:
+                        MovieListResult data= response.body();
+                        List<MovieData> listaDatosPeliculas= data.getMovieData();
+                        Log.d("PeticionPelPopulares","ListaDatosPeliculas: "+listaDatosPeliculas);
+
+                        // Convertir datos de la API a clase Pelicula del dominio
+                        listaPeli = convertMovieListToDomain(listaDatosPeliculas);
+                        //Al ser asincrono tengo que gestionar el contenido del recycler aquí.
+                        // cargar de RecyclerView con los datos
+                        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+                        listaPeliView.setLayoutManager(layoutManager);
+                        ListaPeliculasAdapter lpAdapter = new ListaPeliculasAdapter(listaPeli,
+                                new ListaPeliculasAdapter.OnItemClickListener() {
+                                    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                                    @Override
+                                    public void onItemClick(Pelicula peli) {
+                                        clickOnItem(peli);
+                                    }
+                                });
+
+                        listaPeliView.setAdapter(lpAdapter);
+
+
+                        break;
+                    default:
+                        call.cancel();
+                        break;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieListResult> call, Throwable t) {
+                Log.e("Lista - error", t.toString());
+            }
+        });
+    }
+
     public class DownLoadFilesTask{
         private boolean result;
         private float lineasALeer = 0.0f;

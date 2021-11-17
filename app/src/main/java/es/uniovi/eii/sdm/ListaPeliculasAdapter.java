@@ -64,7 +64,7 @@ public class ListaPeliculasAdapter extends RecyclerView.Adapter<ListaPeliculasAd
         public void bindUser(final Pelicula pelicula,final OnItemClickListener listener){
             titulo.setText(pelicula.getTitulo()+" "+pelicula.getFecha());
             fecha.setText(pelicula.getCategoria().getNombre());
-
+            //Comprobar si existe url de imagen, sino poner imagen por defecto
             String url = pelicula.getUrlCaratula();
             Picasso.get().load(url).into(imagen);
 
